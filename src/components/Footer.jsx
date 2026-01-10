@@ -11,14 +11,15 @@ const Footer = () => {
   return (
     <AntFooter className="bg-white border-t border-gray-200 py-4">
       <div className="max-w-6xl mx-auto px-4">
-        {/* Top Section */}
+        
         <div className="flex flex-col md:flex-row justify-between items-center mb-3">
-          {/* Copyright */}
+
+         
           <Text className="text-gray-600 text-sm mb-2 md:mb-0">
             © {currentYear} Admin Dashboard. All rights reserved.
           </Text>
           
-          {/* Links */}
+          {/* LINKS */}
           <div className="flex space-x-4">
             <Link 
               href="#" 
