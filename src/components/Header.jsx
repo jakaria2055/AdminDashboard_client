@@ -39,8 +39,8 @@ const Header = () => {
       key: "settings",
       icon: <SettingOutlined />,
       label: (
-        <Link to="/settings" className="text-inherit hover:text-inherit">
-          Settings
+        <Link to="/employees" className="text-inherit hover:text-inherit">
+          Employees Table
         </Link>
       ),
     },

@@ -1,69 +1,31 @@
-// src/pages/Dashboard.jsx
-import React, { useState, useEffect } from 'react';
+// src/pages/Dashboard.jsx - Fixed Version
+import React, { useEffect } from 'react';
 import { 
   Card, Row, Col, Statistic, Table, Progress, 
-  Typography, Spin, Alert, Space 
+  Typography, Spin, Alert, Space, Tag 
 } from 'antd';
 import { 
   TeamOutlined, UserOutlined, CheckCircleOutlined, 
   ClockCircleOutlined, StarOutlined, ArrowUpOutlined,
   ArrowDownOutlined 
 } from '@ant-design/icons';
+import EmployeeStore from '../store/EmployeeStore';
 
 const { Title, Text } = Typography;
 
 const Dashboard = () => {
-  const [loading, setLoading] = useState(true);
-  const [dashboardData, setDashboardData] = useState(null);
-
-  // Mock data matching your API structure
-  const mockDashboardData = {
-    summary: {
-      totalEmployees: 156,
-      activeEmployees: 142,
-      pendingReviews: 23,
-      employeeGrowth: '+12%',
-      activePercentage: '91%'
-    },
-    performanceStats: {
-      averageScore: 78,
-      highPerformers: 45,
-      mediumPerformers: 67,
-      lowPerformers: 44,
-      scoreTrend: '+8%'
-    },
-    recentEmployees: [
-      { _id: '1', name: 'John Doe', department: 'Engineering', role: 'Developer', performanceScore: 85, status: 'Active' },
-      { _id: '2', name: 'Jane Smith', department: 'Marketing', role: 'Manager', performanceScore: 92, status: 'Active' },
-      { _id: '3', name: 'Bob Johnson', department: 'Sales', role: 'Executive', performanceScore: 65, status: 'Active' },
-      { _id: '4', name: 'Alice Brown', department: 'HR', role: 'Recruiter', performanceScore: 88, status: 'Active' },
-      { _id: '5', name: 'Mike Wilson', department: 'Engineering', role: 'Lead', performanceScore: 95, status: 'Active' },
-    ],
-    topPerformers: [
-      { _id: '1', name: 'Sarah Johnson', department: 'Engineering', performanceScore: 98 },
-      { _id: '2', name: 'David Chen', department: 'IT', performanceScore: 96 },
-      { _id: '3', name: 'Emma Wilson', department: 'Sales', performanceScore: 95 },
-      { _id: '4', name: 'Michael Brown', department: 'Marketing', performanceScore: 94 },
-      { _id: '5', name: 'Lisa Taylor', department: 'HR', performanceScore: 92 },
-    ],
-    departmentStats: [
-      { department: 'Engineering', count: 65, percentage: 42 },
-      { department: 'Sales', count: 32, percentage: 21 },
-      { department: 'Marketing', count: 28, percentage: 18 },
-      { department: 'HR', count: 18, percentage: 12 },
-      { department: 'Finance', count: 13, percentage: 8 },
-    ]
-  };
+  const { 
+    dashboardData, 
+    loading, 
+    error, 
+    fetchDashboardData 
+  } = EmployeeStore();
 
   useEffect(() => {
-    // Simulate API call
-    setTimeout(() => {
-      setDashboardData(mockDashboardData);
-      setLoading(false);
-    }, 1000);
-  }, []);
+    fetchDashboardData();
+  }, [fetchDashboardData]); // Added dependency
 
-  if (loading) {
+  if (loading && !dashboardData) {
     return (
       <div className="flex justify-center items-center h-64">
         <Spin size="large" tip="Loading dashboard..." />
@@ -71,37 +33,62 @@ const Dashboard = () => {
     );
   }
 
-  const { summary, performanceStats, recentEmployees, topPerformers, departmentStats } = dashboardData;
+  if (error) {
+    return (
+      <Alert
+        message="Error Loading Dashboard"
+        description={error}
+        type="error"
+        showIcon
+        className="mb-4"
+        action={
+          <button 
+            onClick={fetchDashboardData}
+            className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+          >
+            Retry
+          </button>
+        }
+      />
+    );
+  }
+
+  // Safely extract data with defaults
+  const summary = dashboardData?.summary || {};
+  const performance = dashboardData?.performanceStats || {};
+  const recentEmployees = dashboardData?.recentEmployees || [];
+  const topPerformers = dashboardData?.topPerformers || [];
+  const departmentStats = dashboardData?.departmentStats || [];
 
   // Stats cards
   const statsData = [
     { 
       title: 'Total Employees', 
-      value: summary.totalEmployees, 
+      value: summary.totalEmployees || 0, 
       icon: <TeamOutlined />, 
       color: '#1890ff',
-      change: summary.employeeGrowth,
+      change: summary.employeeGrowth || '+0%',
       trend: 'up'
     },
     { 
       title: 'Active Today', 
-      value: summary.activeEmployees, 
+      value: summary.activeEmployees || 0, 
       icon: <UserOutlined />, 
       color: '#52c41a',
-      change: summary.activePercentage,
+      change: summary.activePercentage || '0%',
       trend: 'up'
     },
     { 
       title: 'Avg Performance', 
-      value: `${performanceStats.averageScore}%`, 
+      value: performance.averageScore ? `${Math.round(performance.averageScore)}%` : '0%', 
       icon: <CheckCircleOutlined />, 
       color: '#faad14',
-      change: performanceStats.scoreTrend,
+      change: performance.scoreTrend || '+0%',
       trend: 'up'
     },
     { 
       title: 'Pending Reviews', 
-      value: summary.pendingReviews, 
+      value: summary.pendingReviews || 0, 
       icon: <ClockCircleOutlined />, 
       color: '#f5222d',
       change: 'Requires attention',
@@ -109,7 +96,7 @@ const Dashboard = () => {
     },
   ];
 
-  // Table columns
+  // Table columns for recent employees
   const recentColumns = [
     { 
       title: 'Name', 
@@ -134,7 +121,7 @@ const Dashboard = () => {
       key: 'performanceScore',
       render: (score) => (
         <Progress 
-          percent={score} 
+          percent={score || 0} 
           size="small" 
           strokeColor={
             score >= 80 ? '#52c41a' : 
@@ -145,10 +132,12 @@ const Dashboard = () => {
     },
   ];
 
+  // Table columns for top performers
   const topPerformerColumns = [
     { 
       title: '#', 
       key: 'rank', 
+      width: 50,
       render: (_, __, index) => (
         <div className={`w-6 h-6 rounded-full flex items-center justify-center ${
           index === 0 ? 'bg-yellow-100 text-yellow-600' :
@@ -169,26 +158,28 @@ const Dashboard = () => {
     { 
       title: 'Department', 
       dataIndex: 'department', 
-      key: 'department' 
+      key: 'department',
+      render: (text) => <Tag color="blue">{text}</Tag>
     },
     { 
       title: 'Score', 
       dataIndex: 'performanceScore', 
       key: 'performanceScore',
+      align: 'right',
       render: (score) => (
         <Space>
           <StarOutlined className="text-yellow-500" />
-          <Text strong className="text-lg">{score}</Text>
+          <Text strong className="text-lg">{score || 0}</Text>
         </Space>
       )
     },
   ];
 
   return (
-    <div>
+    <div className="p-6">
       {/* Header */}
       <div className="mb-8">
-        <Title level={2}>Dashboard Overview</Title>
+        <Title level={2} className="!mb-2">Dashboard Overview</Title>
         <Text className="text-gray-500">Welcome back! Here's your employee analytics</Text>
       </div>
 
@@ -204,7 +195,7 @@ const Dashboard = () => {
                     <Title level={2} className="!my-2 !text-3xl">{stat.value}</Title>
                   </div>
                   <div 
-                    className="p-3 rounded-lg" 
+                    className="p-3 rounded-lg text-2xl" 
                     style={{ 
                       backgroundColor: `${stat.color}15`,
                       color: stat.color 
@@ -234,144 +225,131 @@ const Dashboard = () => {
         {/* Recent Employees */}
         <Col xs={24} lg={16}>
           <Card 
-            title="Recent Employees" 
-            extra={<a href="/employees" className="text-blue-500">View All</a>}
+            title={<span className="font-semibold">Recent Employees</span>}
+            extra={<a href="/employees" className="text-blue-500 hover:text-blue-600">View All</a>}
             className="shadow-sm h-full"
           >
-            <Table 
-              dataSource={recentEmployees} 
-              columns={recentColumns} 
-              size="middle"
-              pagination={false}
-              rowKey="_id"
-              className="custom-table"
-            />
+            {recentEmployees.length > 0 ? (
+              <Table 
+                dataSource={recentEmployees} 
+                columns={recentColumns} 
+                size="middle"
+                pagination={false}
+                rowKey="_id"
+                loading={loading}
+              />
+            ) : (
+              <div className="text-center py-8 text-gray-500">
+                No recent employees found
+              </div>
+            )}
           </Card>
         </Col>
 
         {/* Top Performers */}
         <Col xs={24} lg={8}>
           <Card 
-            title="Top Performers" 
+            title={<span className="font-semibold">Top Performers</span>}
             className="shadow-sm h-full"
           >
-            <Table 
-              dataSource={topPerformers} 
-              columns={topPerformerColumns} 
-              size="small"
-              pagination={false}
-              rowKey="_id"
-              className="custom-table"
-            />
+            {topPerformers.length > 0 ? (
+              <Table 
+                dataSource={topPerformers} 
+                columns={topPerformerColumns} 
+                size="small"
+                pagination={false}
+                rowKey="_id"
+                loading={loading}
+                showHeader={false}
+              />
+            ) : (
+              <div className="text-center py-8 text-gray-500">
+                No top performers data
+              </div>
+            )}
           </Card>
         </Col>
       </Row>
 
       {/* Department Distribution */}
-      <Card 
-        title="Department Distribution" 
-        className="mt-8 shadow-sm"
-        extra={<Text className="text-gray-500">Total: {summary.totalEmployees} employees</Text>}
-      >
-        <Row gutter={[16, 16]}>
-          {departmentStats.map((dept, index) => {
-            const colors = ['#1890ff', '#52c41a', '#faad14', '#f5222d', '#722ed1'];
-            return (
-              <Col xs={24} sm={12} md={8} lg={4.8} key={index}>
-                <div className="text-center">
-                  <div className="mb-4">
-                    <Progress
-                      type="circle"
-                      percent={dept.percentage}
-                      width={80}
-                      strokeColor={colors[index % colors.length]}
-                      format={() => (
-                        <div className="text-center">
-                          <Text strong className="text-xl">{dept.count}</Text>
-                        </div>
-                      )}
-                    />
+      {departmentStats.length > 0 && (
+        <Card 
+          title={<span className="font-semibold">Department Distribution</span>}
+          className="mt-6 shadow-sm"
+          extra={<Text className="text-gray-500">Total: {summary.totalEmployees || 0} employees</Text>}
+        >
+          <Row gutter={[16, 16]}>
+            {departmentStats.map((dept, index) => {
+              const colors = ['#1890ff', '#52c41a', '#faad14', '#f5222d', '#722ed1'];
+              const percentage = dept.percentage || 0;
+              const count = dept.count || 0;
+              
+              return (
+                <Col xs={24} sm={12} md={8} lg={4.8} key={index}>
+                  <div className="text-center p-4">
+                    <div className="mb-4">
+                      <Progress
+                        type="circle"
+                        percent={Math.round(percentage)}
+                        width={100}
+                        strokeColor={colors[index % colors.length]}
+                        format={() => (
+                          <div className="text-center">
+                            <Text strong className="text-2xl block">{count}</Text>
+                            <Text className="text-xs text-gray-500">employees</Text>
+                          </div>
+                        )}
+                      />
+                    </div>
+                    <Text strong className="block text-base">{dept.department}</Text>
+                    <Text className="text-gray-500 text-sm">{percentage.toFixed(1)}%</Text>
                   </div>
-                  <Text strong className="block">{dept.department}</Text>
-                  <Text className="text-gray-500 text-sm">{dept.percentage}%</Text>
-                </div>
-              </Col>
-            );
-          })}
-        </Row>
-      </Card>
+                </Col>
+              );
+            })}
+          </Row>
+        </Card>
+      )}
 
       {/* Performance Summary */}
-      <Card title="Performance Summary" className="mt-8 shadow-sm">
-        <Row gutter={[16, 16]}>
-          <Col xs={24} md={8}>
-            <div className="text-center p-6 bg-green-50 rounded-lg">
-              <Title level={1} className="!text-green-600 !mb-2">
-                {performanceStats.highPerformers}
-              </Title>
-              <Text className="text-green-700 font-medium">High Performers</Text>
-              <Text className="block text-green-600 text-sm mt-1">(80-100%)</Text>
-            </div>
-          </Col>
-          <Col xs={24} md={8}>
-            <div className="text-center p-6 bg-blue-50 rounded-lg">
-              <Title level={1} className="!text-blue-600 !mb-2">
-                {performanceStats.mediumPerformers}
-              </Title>
-              <Text className="text-blue-700 font-medium">Medium Performers</Text>
-              <Text className="block text-blue-600 text-sm mt-1">(60-79%)</Text>
-            </div>
-          </Col>
-          <Col xs={24} md={8}>
-            <div className="text-center p-6 bg-orange-50 rounded-lg">
-              <Title level={1} className="!text-orange-600 !mb-2">
-                {performanceStats.lowPerformers}
-              </Title>
-              <Text className="text-orange-700 font-medium">Low Performers</Text>
-              <Text className="block text-orange-600 text-sm mt-1">(Below 60%)</Text>
-            </div>
-          </Col>
-        </Row>
-      </Card>
-
-      {/* Quick Stats */}
-      <Card className="mt-8 shadow-sm">
-        <Row gutter={[16, 16]}>
-          <Col xs={24} md={8}>
-            <Statistic
-              title="Average Performance"
-              value={performanceStats.averageScore}
-              suffix="%"
-              valueStyle={{ color: performanceStats.averageScore >= 70 ? '#3f8600' : '#cf1322' }}
-            />
-          </Col>
-          <Col xs={24} md={8}>
-            <Statistic
-              title="Active Rate"
-              value={Math.round((summary.activeEmployees / summary.totalEmployees) * 100)}
-              suffix="%"
-              valueStyle={{ color: '#1890ff' }}
-            />
-          </Col>
-          <Col xs={24} md={8}>
-            <Statistic
-              title="Growth Rate"
-              value={12}
-              suffix="%"
-              valueStyle={{ color: '#3f8600' }}
-            />
-          </Col>
-        </Row>
-      </Card>
+      {(performance.highPerformers || performance.mediumPerformers || performance.lowPerformers) && (
+        <Card 
+          title={<span className="font-semibold">Performance Summary</span>}
+          className="mt-6 shadow-sm"
+        >
+          <Row gutter={[16, 16]}>
+            <Col xs={24} md={8}>
+              <div className="text-center p-6 bg-green-50 rounded-lg hover:shadow-md transition-shadow">
+                <Title level={1} className="!text-green-600 !mb-2">
+                  {performance.highPerformers || 0}
+                </Title>
+                <Text className="text-green-700 font-medium block">High Performers</Text>
+                <Text className="block text-green-600 text-sm mt-1">(80-100%)</Text>
+              </div>
+            </Col>
+            <Col xs={24} md={8}>
+              <div className="text-center p-6 bg-blue-50 rounded-lg hover:shadow-md transition-shadow">
+                <Title level={1} className="!text-blue-600 !mb-2">
+                  {performance.mediumPerformers || 0}
+                </Title>
+                <Text className="text-blue-700 font-medium block">Medium Performers</Text>
+                <Text className="block text-blue-600 text-sm mt-1">(60-79%)</Text>
+              </div>
+            </Col>
+            <Col xs={24} md={8}>
+              <div className="text-center p-6 bg-orange-50 rounded-lg hover:shadow-md transition-shadow">
+                <Title level={1} className="!text-orange-600 !mb-2">
+                  {performance.lowPerformers || 0}
+                </Title>
+                <Text className="text-orange-700 font-medium block">Low Performers</Text>
+                <Text className="block text-orange-600 text-sm mt-1">(Below 60%)</Text>
+              </div>
+            </Col>
+          </Row>
+        </Card>
+      )}
     </div>
   );
 };
-
-// Need Tag component
-const Tag = ({ color, children }) => (
-  <span className={`px-2 py-1 rounded-full text-xs bg-${color}-100 text-${color}-600`}>
-    {children}
-  </span>
-);
 
 export default Dashboard;
