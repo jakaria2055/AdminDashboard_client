@@ -1,4 +1,4 @@
-// src/store/EmployeeStore.js - Complete Fixed Version
+// src/store/EmployeeStore.js - Fixed for Actual API Response Structure
 import { create } from "zustand";
 import axios from "axios";
 import { message } from "antd";
@@ -110,22 +110,58 @@ const EmployeeStore = create((set, get) => ({
         })
       ]);
 
-      console.log('Dashboard data fetched:', {
-        summary: summaryRes.data,
-        recent: recentRes.data,
-        dept: deptRes.data,
-        top: topRes.data,
-        perf: perfRes.data
+      console.log('Raw API Responses:', {
+        summaryRes: summaryRes.data,
+        recentRes: recentRes.data,
+        deptRes: deptRes.data,
+        topRes: topRes.data,
+        perfRes: perfRes.data
       });
 
+      // Extract data based on actual response structure
+      // Check the raw response to see what fields are available
+      const extractEmployees = (responseData) => {
+        console.log('Extracting employees from:', responseData);
+        // Try different possible response structures
+        if (Array.isArray(responseData.employees)) {
+          return responseData.employees;
+        }
+        if (Array.isArray(responseData.data)) {
+          return responseData.data;
+        }
+        if (Array.isArray(responseData.results)) {
+          return responseData.results;
+        }
+        return [];
+      };
+
+      const extractStats = (responseData) => {
+        console.log('Extracting stats from:', responseData);
+        if (responseData.data && typeof responseData.data === 'object' && !Array.isArray(responseData.data)) {
+          return responseData.data;
+        }
+        if (responseData.stats) {
+          return responseData.stats;
+        }
+        // If the response itself is the stats object
+        if (responseData.totalEmployees !== undefined) {
+          return responseData;
+        }
+        return {};
+      };
+
+      const dashboardData = {
+        summary: extractStats(summaryRes.data),
+        recentEmployees: extractEmployees(recentRes.data),
+        departmentStats: extractEmployees(deptRes.data),
+        topPerformers: extractEmployees(topRes.data),
+        performanceStats: extractStats(perfRes.data)
+      };
+
+      console.log('Processed Dashboard Data:', dashboardData);
+
       set({
-        dashboardData: {
-          summary: summaryRes.data?.data || {},
-          recentEmployees: recentRes.data?.data || [],
-          departmentStats: deptRes.data?.data || [],
-          topPerformers: topRes.data?.data || [],
-          performanceStats: perfRes.data?.data || {}
-        },
+        dashboardData,
         loading: false,
         error: null
       });
@@ -185,11 +221,15 @@ const EmployeeStore = create((set, get) => ({
         params
       });
 
-      console.log('Employees fetched:', response.data);
+      console.log('Employees response:', response.data);
+
+      // Handle different response structures
+      const employeesData = response.data?.employees || response.data?.data || [];
+      const total = response.data?.total || response.data?.count || employeesData.length;
 
       set({
-        employees: response.data?.data || [],
-        totalEmployees: response.data?.total || 0,
+        employees: employeesData,
+        totalEmployees: total,
         loading: false,
         error: null
       });
