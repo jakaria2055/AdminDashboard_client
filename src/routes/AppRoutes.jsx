@@ -5,6 +5,7 @@ import MainLayout from "../layout/MainLayout";
 import Home from "../pages/Home";
 import Signin from "../pages/Signin";
 import Signup from "../pages/Signup";
+import ProtectedRoute from "../components/ProtectedRoute";
 
 const AppRoutes = () => (
   <MainLayout>
@@ -12,8 +13,18 @@ const AppRoutes = () => (
       <Route path="/" element={<Home />} />
       <Route path="/signin" element={<Signin />} />
       <Route path="/signup" element={<Signup />} />
-      <Route path="/dashboard" element={<Dashboard />} />
-      <Route path="/employees" element={<Employees />} />
+      
+      <Route path="/dashboard" element={
+        <ProtectedRoute>
+          <Dashboard />
+        </ProtectedRoute>
+      } />
+      
+      <Route path="/employees" element={
+        <ProtectedRoute>
+          <Employees />
+        </ProtectedRoute>
+      } />
     </Routes>
   </MainLayout>
 );

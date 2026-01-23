@@ -25,17 +25,6 @@ const Dashboard = () => {
     fetchDashboardData();
   }, [fetchDashboardData]);
 
-  // Log the dashboard data to debug
-  // useEffect(() => {
-  //   if (dashboardData) {
-  //     console.log('Dashboard Data:', dashboardData);
-  //     console.log('Recent Employees:', dashboardData.recentEmployees);
-  //     console.log('Summary:', dashboardData.summary);
-  //     console.log('Performance Stats:', dashboardData.performanceStats);
-  //     console.log('Department Stats:', dashboardData.departmentStats);
-  //     console.log('Top Performers:', dashboardData.topPerformers);
-  //   }
-  // }, [dashboardData]);
 
   if (loading && !dashboardData) {
     return (
