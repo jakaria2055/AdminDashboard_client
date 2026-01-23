@@ -54,15 +54,6 @@ const Header = () => {
       ),
     },
     {
-      key: "settings",
-      icon: <SettingOutlined />,
-      label: (
-        <Link to="/settings" className="text-inherit hover:text-inherit">
-          Settings
-        </Link>
-      ),
-    },
-    {
       type: "divider",
     },
     {
@@ -98,7 +89,7 @@ const Header = () => {
             className="p-2 rounded-lg cursor-pointer hover:bg-white/10 transition-colors" 
             onClick={() => navigate("/")}
           >
-            <DashboardOutlined className="text-white text-2xl" />
+            <DashboardOutlined className="!text-white text-2xl" />
           </div>
           <div 
             className="flex flex-col cursor-pointer"
@@ -107,7 +98,7 @@ const Header = () => {
             <Title level={3} className="!text-white !m-0 !font-bold">
               Admin Dashboard
             </Title>
-            <Text className="text-gray-300 text-xs font-light">
+            <Text className="!text-gray-300 text-xs font-light">
               Employee Management Portal
             </Text>
           </div>
