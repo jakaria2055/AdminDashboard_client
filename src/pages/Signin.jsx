@@ -1,4 +1,3 @@
-// src/pages/Signin.jsx
 import React, { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Card, Form, Input, Button, Typography, notification } from "antd";

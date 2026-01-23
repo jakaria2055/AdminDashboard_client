@@ -1,5 +1,3 @@
-// src/components/Footer.jsx
-import React from 'react';
 import { Layout, Typography, Divider } from 'antd';
 
 const { Footer: AntFooter } = Layout;

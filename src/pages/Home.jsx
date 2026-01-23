@@ -1,5 +1,3 @@
-// src/pages/Home.jsx - Simple Version
-import React from "react";
 import { Card, Button, Typography, Row, Col, Alert } from "antd";
 import {
   DashboardOutlined,
