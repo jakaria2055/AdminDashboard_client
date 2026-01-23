@@ -3,7 +3,8 @@ import { create } from "zustand";
 import axios from "axios";
 import { message } from "antd";
 
-const BaseURL = "http://localhost:3000/api/v1";
+// const BaseURL = "http://localhost:3000/api/v1";
+const BaseURL = "https://admin-dashboard-server-phi.vercel.app/api/v1"
 
 const EmployeeStore = create((set, get) => ({
   // Dashboard Data
@@ -89,8 +90,6 @@ const EmployeeStore = create((set, get) => ({
       if (!token) {
         throw new Error("No access token found");
       }
-
-      console.log('Fetching dashboard data...');
       
       const [summaryRes, recentRes, deptRes, topRes, perfRes] = await Promise.all([
         axios.get(`${BaseURL}/employees/dashboard/summary`, {
@@ -110,15 +109,15 @@ const EmployeeStore = create((set, get) => ({
         })
       ]);
 
-      console.log('Raw API Responses:', {
-        summaryRes: summaryRes.data,
-        recentRes: recentRes.data,
-        deptRes: deptRes.data,
-        topRes: topRes.data,
-        perfRes: perfRes.data
-      });
+      // console.log('API Responses:', {
+      //   summaryRes: summaryRes.data,
+      //   recentRes: recentRes.data,
+      //   deptRes: deptRes.data,
+      //   topRes: topRes.data,
+      //   perfRes: perfRes.data
+      // });
 
-      // Extract data based on actual response structure
+    
       // Check the raw response to see what fields are available
       const extractEmployees = (responseData) => {
         console.log('Extracting employees from:', responseData);
@@ -136,14 +135,14 @@ const EmployeeStore = create((set, get) => ({
       };
 
       const extractStats = (responseData) => {
-        console.log('Extracting stats from:', responseData);
+        // console.log('Extracting stats from:', responseData);
         if (responseData.data && typeof responseData.data === 'object' && !Array.isArray(responseData.data)) {
           return responseData.data;
         }
         if (responseData.stats) {
           return responseData.stats;
         }
-        // If the response itself is the stats object
+        // if the response itself is the stats object
         if (responseData.totalEmployees !== undefined) {
           return responseData;
         }
@@ -158,7 +157,7 @@ const EmployeeStore = create((set, get) => ({
         performanceStats: extractStats(perfRes.data)
       };
 
-      console.log('Processed Dashboard Data:', dashboardData);
+      // console.log('Processed Dashboard Data:', dashboardData);
 
       set({
         dashboardData,
@@ -208,20 +207,12 @@ const EmployeeStore = create((set, get) => ({
         params.search = filters.search;
       }
 
-      // Add date range if exists
-      if (filters.dateRange && filters.dateRange.length === 2) {
-        params.startDate = filters.dateRange[0].format('YYYY-MM-DD');
-        params.endDate = filters.dateRange[1].format('YYYY-MM-DD');
-      }
-
-      console.log('Fetching employees with params:', params);
-
       const response = await axios.get(`${BaseURL}/employees`, {
         headers: { accesstoken: token },
         params
       });
 
-      console.log('Employees response:', response.data);
+      // console.log('employees response:', response.data);
 
       // Handle different response structures
       const employeesData = response.data?.employees || response.data?.data || [];
@@ -254,15 +245,12 @@ const EmployeeStore = create((set, get) => ({
         throw new Error("No access token found");
       }
 
-      // Create FormData for file upload
       const formDataObj = new FormData();
       
-      // Append all fields to FormData
       Object.keys(formData).forEach(key => {
         if (key === 'image' && formData[key] instanceof File) {
           formDataObj.append(key, formData[key]);
         } else if (key === 'joiningDate' && formData[key]) {
-          // Handle dayjs object or date string
           const date = formData[key].$d ? formData[key].$d : new Date(formData[key]);
           formDataObj.append(key, date.toISOString().split('T')[0]);
         } else if (key === 'performanceScore') {
@@ -271,8 +259,6 @@ const EmployeeStore = create((set, get) => ({
           formDataObj.append(key, formData[key]);
         }
       });
-
-      console.log('Creating employee with formData');
 
       const response = await axios.post(
         `${BaseURL}/employees/create`,
@@ -287,9 +273,7 @@ const EmployeeStore = create((set, get) => ({
 
       if (response.data.success) {
         message.success('Employee created successfully!');
-        // Refresh the employee list
         await get().fetchEmployees();
-        // Reset form
         get().resetEmployeeForm();
         set({ loading: false });
         return true;
@@ -318,31 +302,26 @@ const EmployeeStore = create((set, get) => ({
         throw new Error("No access token found");
       }
 
-      // Check if there's a new image file to upload
+      // Check if there is a new image file to upload
       const hasNewImage = formData.image instanceof File;
       
       let response;
       
       if (hasNewImage) {
-        // If uploading new image, use FormData
         const formDataObj = new FormData();
         
         Object.keys(formData).forEach(key => {
           if (key === 'image' && formData[key] instanceof File) {
             formDataObj.append(key, formData[key]);
           } else if (key === 'joiningDate' && formData[key]) {
-            // Handle dayjs object or date string
             const date = formData[key].$d ? formData[key].$d : new Date(formData[key]);
             formDataObj.append(key, date.toISOString().split('T')[0]);
           } else if (key === 'performanceScore') {
-            // Ensure performanceScore is a number
             formDataObj.append(key, Number(formData[key]));
           } else if (formData[key] !== null && formData[key] !== undefined) {
             formDataObj.append(key, formData[key]);
           }
         });
-
-        console.log('Updating employee with new image (FormData)');
 
         response = await axios.put(
           `${BaseURL}/employees/update/${id}`,
@@ -355,7 +334,7 @@ const EmployeeStore = create((set, get) => ({
           }
         );
       } else {
-        // If no new image, send JSON
+        // if no new image, send only JSON
         const jsonData = {
           employeeID: formData.employeeID,
           name: formData.name,
@@ -376,9 +355,6 @@ const EmployeeStore = create((set, get) => ({
         if (formData.image && typeof formData.image === 'string') {
           jsonData.image = formData.image;
         }
-
-        console.log('Updating employee without new image (JSON):', jsonData);
-
         response = await axios.put(
           `${BaseURL}/employees/update/${id}`,
           jsonData,
@@ -391,11 +367,9 @@ const EmployeeStore = create((set, get) => ({
         );
       }
 
-      console.log('Update response:', response.data);
 
       if (response.data.success) {
         message.success('Employee updated successfully!');
-        // Refresh the employee list
         await get().fetchEmployees();
         set({ loading: false });
         return true;
@@ -434,7 +408,6 @@ const EmployeeStore = create((set, get) => ({
 
       if (response.data.success) {
         message.success('Employee status updated successfully!');
-        // Refresh the employee list
         await get().fetchEmployees();
         set({ loading: false });
         return true;
@@ -453,43 +426,6 @@ const EmployeeStore = create((set, get) => ({
     }
   },
 
-  // Delete Employee (Permanent)
-  deleteEmployee: async (id) => {
-    set({ loading: true, error: null });
-    try {
-      const token = localStorage.getItem("accesstoken");
-      
-      if (!token) {
-        throw new Error("No access token found");
-      }
-
-      console.log('Deleting employee:', id);
-      
-      const response = await axios.delete(
-        `${BaseURL}/employees/${id}`,
-        { headers: { accesstoken: token } }
-      );
-
-      if (response.data.success) {
-        message.success('Employee deleted successfully!');
-        // Refresh the employee list
-        await get().fetchEmployees();
-        set({ loading: false });
-        return true;
-      } else {
-        throw new Error(response.data.message || 'Failed to delete employee');
-      }
-    } catch (error) {
-      console.error('Delete employee error:', error);
-      const errorMsg = error.response?.data?.message || error.message || 'Failed to delete employee';
-      set({ 
-        error: errorMsg,
-        loading: false 
-      });
-      message.error(errorMsg);
-      return false;
-    }
-  },
 
   // Filter Methods
   searchEmployees: (searchTerm) => {

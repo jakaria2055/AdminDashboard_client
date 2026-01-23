@@ -1,5 +1,4 @@
-// src/pages/Dashboard.jsx - Fixed for Actual API Response
-import React, { useEffect } from 'react';
+import  { useEffect } from 'react';
 import { 
   Card, Row, Col, Table, Progress, 
   Typography, Spin, Alert, Space, Tag, Empty 
@@ -10,6 +9,7 @@ import {
 } from '@ant-design/icons';
 import EmployeeStore from '../store/EmployeeStore';
 import dayjs from 'dayjs';
+import { Link } from 'react-router-dom';
 
 const { Title, Text } = Typography;
 
@@ -26,20 +26,20 @@ const Dashboard = () => {
   }, [fetchDashboardData]);
 
   // Log the dashboard data to debug
-  useEffect(() => {
-    if (dashboardData) {
-      console.log('Dashboard Data:', dashboardData);
-      console.log('Recent Employees:', dashboardData.recentEmployees);
-      console.log('Summary:', dashboardData.summary);
-      console.log('Performance Stats:', dashboardData.performanceStats);
-      console.log('Department Stats:', dashboardData.departmentStats);
-      console.log('Top Performers:', dashboardData.topPerformers);
-    }
-  }, [dashboardData]);
+  // useEffect(() => {
+  //   if (dashboardData) {
+  //     console.log('Dashboard Data:', dashboardData);
+  //     console.log('Recent Employees:', dashboardData.recentEmployees);
+  //     console.log('Summary:', dashboardData.summary);
+  //     console.log('Performance Stats:', dashboardData.performanceStats);
+  //     console.log('Department Stats:', dashboardData.departmentStats);
+  //     console.log('Top Performers:', dashboardData.topPerformers);
+  //   }
+  // }, [dashboardData]);
 
   if (loading && !dashboardData) {
     return (
-      <div className="flex justify-center items-center" style={{ minHeight: '60vh' }}>
+      <div className="flex justify-center items-center">
         <Spin size="large" tip="Loading dashboard data..." />
       </div>
     );
@@ -67,7 +67,7 @@ const Dashboard = () => {
     );
   }
 
-  // Safely extract data with defaults
+  // extract data with defaults
   const summary = dashboardData?.summary || {};
   const performance = dashboardData?.performanceStats || {};
   const recentEmployees = dashboardData?.recentEmployees || [];
@@ -115,11 +115,14 @@ const Dashboard = () => {
       key: 'department',
       render: (text) => (
         <Tag color={
-          text === 'Engineering' ? 'blue' :
-          text === 'Marketing' ? 'green' :
-          text === 'Sales' ? 'red' :
-          text === 'HR' ? 'purple' : 
-          text === 'IT' ? 'cyan' : 'orange'
+            text === 'Engineering' ? 'blue' :
+            text === 'Marketing' ? 'green' :
+            text === 'Sales' ? 'red' :
+            text === 'HR' ? 'purple' : 
+            text === 'Transport' ? 'red' : 
+            text === 'Business' ? 'yellow' : 
+            text === 'Account' ? 'pink' : 
+            text === 'IT' ? 'cyan' : 'orange'
         }>
           {text}
         </Tag>
@@ -195,11 +198,14 @@ const Dashboard = () => {
       key: 'department',
       render: (text) => (
         <Tag color={
-          text === 'Engineering' ? 'blue' :
-          text === 'Marketing' ? 'green' :
-          text === 'Sales' ? 'red' :
-          text === 'HR' ? 'purple' : 
-          text === 'IT' ? 'cyan' : 'orange'
+            text === 'Engineering' ? 'blue' :
+            text === 'Marketing' ? 'green' :
+            text === 'Sales' ? 'red' :
+            text === 'HR' ? 'purple' : 
+            text === 'Transport' ? 'red' : 
+            text === 'Business' ? 'yellow' : 
+            text === 'Account' ? 'pink' : 
+            text === 'IT' ? 'cyan' : 'orange'
         }>
           {text}
         </Tag>
@@ -214,7 +220,7 @@ const Dashboard = () => {
       render: (score) => (
         <div className="flex flex-col items-center gap-1">
           <div className="flex items-center gap-2">
-            <StarOutlined className="text-yellow-500" />
+            <StarOutlined className="" />
             <Text strong className="text-lg">{score}%</Text>
           </div>
           <Progress 
@@ -282,16 +288,16 @@ const Dashboard = () => {
             title={
               <div className="flex items-center">
                 <TeamOutlined className="mr-2" />
-                <span className="font-semibold">Recent Employees</span>
+                <span className="font-semibold">Recent 5 Employees</span>
               </div>
             }
             extra={
-              <a 
-                href="/employees"
+              <Link 
+                to="/employees"
                 className="text-blue-500 hover:text-blue-600"
               >
                 View All →
-              </a>
+              </Link>
             }
             className="shadow-sm h-full"
             bordered={false}
@@ -401,72 +407,12 @@ const Dashboard = () => {
                       {dept.department || dept._id}
                     </Text>
                     <Tag color={colors[index % colors.length]}>
-                      {percentage.toFixed(1)}%
+                      {percentage.toFixed(2)}%
                     </Tag>
                   </div>
                 </Col>
               );
             })}
-          </Row>
-        </Card>
-      )}
-
-      {/* Performance Summary */}
-      {(performance.highPerformers !== undefined || 
-        performance.mediumPerformers !== undefined || 
-        performance.lowPerformers !== undefined) && (
-        <Card 
-          title={
-            <div className="flex items-center">
-              <StarOutlined className="mr-2 text-yellow-500" />
-              <span className="font-semibold">Performance Summary</span>
-            </div>
-          }
-          className="mt-6 shadow-sm"
-          bordered={false}
-        >
-          <Row gutter={[16, 16]}>
-            <Col xs={24} md={8}>
-              <div className="text-center p-8 bg-gradient-to-br from-green-50 to-green-100 rounded-lg hover:shadow-lg transition-all">
-                <Title level={1} className="!text-green-600 !mb-2">
-                  {performance.highPerformers || 0}
-                </Title>
-                <Text className="text-green-700 font-medium block text-lg">
-                  High Performers
-                </Text>
-                <Text className="block text-green-600 text-sm mt-2">
-                  Score: 80-100%
-                </Text>
-              </div>
-            </Col>
-            
-            <Col xs={24} md={8}>
-              <div className="text-center p-8 bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg hover:shadow-lg transition-all">
-                <Title level={1} className="!text-blue-600 !mb-2">
-                  {performance.mediumPerformers || 0}
-                </Title>
-                <Text className="text-blue-700 font-medium block text-lg">
-                  Medium Performers
-                </Text>
-                <Text className="block text-blue-600 text-sm mt-2">
-                  Score: 60-79%
-                </Text>
-              </div>
-            </Col>
-            
-            <Col xs={24} md={8}>
-              <div className="text-center p-8 bg-gradient-to-br from-orange-50 to-orange-100 rounded-lg hover:shadow-lg transition-all">
-                <Title level={1} className="!text-orange-600 !mb-2">
-                  {performance.lowPerformers || 0}
-                </Title>
-                <Text className="text-orange-700 font-medium block text-lg">
-                  Needs Improvement
-                </Text>
-                <Text className="block text-orange-600 text-sm mt-2">
-                  Score: Below 60%
-                </Text>
-              </div>
-            </Col>
           </Row>
         </Card>
       )}

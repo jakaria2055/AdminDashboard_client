@@ -1,7 +1,12 @@
 // src/pages/Home.jsx - Simple Version
-import React from 'react';
-import { Card, Button, Typography, Row, Col, Alert } from 'antd';
-import { DashboardOutlined, LoginOutlined, UserAddOutlined } from '@ant-design/icons';
+import React from "react";
+import { Card, Button, Typography, Row, Col, Alert } from "antd";
+import {
+  DashboardOutlined,
+  LoginOutlined,
+  UserAddOutlined,
+} from "@ant-design/icons";
+import { Link } from "react-router-dom";
 
 const { Title, Text } = Typography;
 
@@ -13,11 +18,9 @@ const Home = () => {
         <div className="bg-blue-100 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6">
           <DashboardOutlined className="text-3xl text-blue-600" />
         </div>
-        
-        <Title  className="!text-3xl md:!text-4xl !mb-3">
-          Admin Dashboard
-        </Title>
-        
+
+        <Title className="!text-3xl md:!text-4xl !mb-3">Admin Dashboard</Title>
+
         <Text className="text-gray-500 text-lg mb-8 block">
           Employee Management System
         </Text>
@@ -31,21 +34,22 @@ const Home = () => {
         />
 
         <div className="flex flex-col sm:flex-row gap-4 justify-center mt-3">
-          <Button 
-            type="primary" 
-            size="large"
-            icon={<LoginOutlined />}
-            className="h-12"
-          >
-            Sign In
-          </Button>
-          <Button 
-            size="large"
-            icon={<UserAddOutlined />}
-            className="h-12"
-          >
-            Create Account
-          </Button>
+          <Link to={"/signin"}>
+            <Button
+              type="primary"
+              size="large"
+              icon={<LoginOutlined />}
+              className="h-12"
+            >
+              Sign In
+            </Button>
+          </Link>
+
+          <Link to={"/signup"}>
+            <Button size="large" icon={<UserAddOutlined />} className="h-12">
+              Create Account
+            </Button>
+          </Link>
         </div>
       </div>
 
@@ -57,7 +61,8 @@ const Home = () => {
               For Administrators
             </Title>
             <Text className="text-gray-600">
-              Manage employee records, track performance, and generate reports all in one place.
+              Manage employee records, track performance, and generate reports
+              all in one place.
             </Text>
           </Card>
         </Col>

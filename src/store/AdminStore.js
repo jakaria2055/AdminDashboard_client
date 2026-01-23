@@ -2,7 +2,8 @@ import { create } from "zustand";
 import axios from "axios";
 import { setEmail } from "../utility/utility";
 
-const BaseURL = "http://localhost:3000/api/v1";
+// const BaseURL = "http://localhost:3000/api/v1";
+const BaseURL = "https://admin-dashboard-server-phi.vercel.app/api/v1"
 
 
 const AdminStore = create((set) => ({

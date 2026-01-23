@@ -1,13 +1,13 @@
-// src/components/Header.jsx
-import React from "react";
 import { Layout, Typography, Avatar, Badge, Dropdown, Space, Button } from "antd";
 import {
   BellOutlined,
   UserOutlined,
   LogoutOutlined,
   DashboardOutlined,
-  SettingOutlined,
-  LoginOutlined
+  LoginOutlined,
+  IdcardOutlined,
+  TeamOutlined,
+  SettingOutlined
 } from "@ant-design/icons";
 import { Link, useNavigate } from "react-router-dom";
 import AdminStore from "../store/AdminStore";
@@ -28,7 +28,7 @@ const Header = () => {
     navigate("/");
   };
 
-  // Menu items for logged-in admin
+  // Menu items for logged-in admin ONLY
   const adminMenuItems = [
     {
       key: "profile",
@@ -36,11 +36,29 @@ const Header = () => {
       label: "Profile",
     },
     {
-      key: "settings",
-      icon: <SettingOutlined />,
+      key: "dashboard",
+      icon: <TeamOutlined />,
+      label: (
+        <Link to="/dashboard" className="text-inherit hover:text-inherit">
+          Dashboard
+        </Link>
+      ),
+    },
+    {
+      key: "employees",
+      icon: <IdcardOutlined />,
       label: (
         <Link to="/employees" className="text-inherit hover:text-inherit">
           Employees Table
+        </Link>
+      ),
+    },
+    {
+      key: "settings",
+      icon: <SettingOutlined />,
+      label: (
+        <Link to="/settings" className="text-inherit hover:text-inherit">
+          Settings
         </Link>
       ),
     },
@@ -53,28 +71,6 @@ const Header = () => {
       label: "Logout",
       onClick: handleLogout,
       danger: true,
-    },
-  ];
-
-  // Menu items for guest (not logged in)
-  const guestMenuItems = [
-    {
-      key: "signin",
-      icon: <LoginOutlined />,
-      label: (
-        <Link to="/signin" className="text-inherit hover:text-inherit">
-          Sign In
-        </Link>
-      ),
-    },
-    {
-      key: "signup",
-      icon: <UserOutlined />,
-      label: (
-        <Link to="/signup" className="text-inherit hover:text-inherit">
-          Sign Up
-        </Link>
-      ),
     },
   ];
 
@@ -99,10 +95,10 @@ const Header = () => {
         {/* Left: Logo and Title */}
         <div className="flex items-center space-x-3">
           <div 
-            className="p-2 rounded-lg cursor-pointer" 
+            className="p-2 rounded-lg cursor-pointer hover:bg-white/10 transition-colors" 
             onClick={() => navigate("/")}
           >
-            <DashboardOutlined className="!text-white text-2xl" />
+            <DashboardOutlined className="text-white text-2xl" />
           </div>
           <div 
             className="flex flex-col cursor-pointer"
@@ -111,7 +107,7 @@ const Header = () => {
             <Title level={3} className="!text-white !m-0 !font-bold">
               Admin Dashboard
             </Title>
-            <Text className="!text-gray-300 text-xs font-light">
+            <Text className="text-gray-300 text-xs font-light">
               Employee Management Portal
             </Text>
           </div>
@@ -146,45 +142,36 @@ const Header = () => {
             </>
           )}
 
-          {/* User Profile Dropdown */}
-          <Dropdown
-            menu={{ 
-              items: adminStatus ? adminMenuItems : guestMenuItems 
-            }}
-            placement="bottomRight"
-            trigger={["click"]}
-          >
-            <div className="flex items-center space-x-3 cursor-pointer hover:bg-white/10 px-3 py-2 rounded-lg transition-all duration-200">
-              <Avatar
-                size="default"
-                icon={<UserOutlined />}
-                className={`shadow-md border-2 border-white/50 ${
-                  adminStatus 
-                    ? "bg-gradient-to-br from-blue-400 to-indigo-500" 
-                    : "bg-gradient-to-br from-gray-400 to-gray-600"
-                }`}
-              />
-              <div className="flex flex-col items-start">
-                <span className="text-white font-semibold text-sm">
-                  {userName}
-                </span>
-                <span className={`text-xs ${
-                  adminStatus ? "text-blue-100" : "text-gray-300"
-                }`}>
-                  {adminStatus ? "Administrator" : "Guest"}
-                </span>
+          {/* User Profile Dropdown (ONLY for admin) */}
+          {adminStatus ? (
+            <Dropdown
+              menu={{ items: adminMenuItems }}
+              placement="bottomRight"
+              trigger={["click"]}
+            >
+              <div className="flex items-center space-x-3 cursor-pointer hover:bg-white/10 px-3 py-2 rounded-lg transition-all duration-200">
+                <Avatar
+                  size="default"
+                  icon={<UserOutlined />}
+                  className="bg-gradient-to-br from-blue-400 to-indigo-500 shadow-md border-2 border-white/50"
+                />
+                <div className="flex flex-col items-start">
+                  <span className="text-white font-semibold text-sm">
+                    {userName}
+                  </span>
+                  <span className="text-blue-100 text-xs">
+                    Administrator
+                  </span>
+                </div>
               </div>
-            </div>
-          </Dropdown>
-
-          {/* Alternative: Simple Button for Guest */}
-          {!adminStatus && (
+            </Dropdown>
+          ) : (
+            // Simple login button for guests
             <Button
               type="primary"
               icon={<LoginOutlined />}
               size="middle"
               onClick={() => navigate("/signin")}
-              className="ml-2"
             >
               Admin Login
             </Button>

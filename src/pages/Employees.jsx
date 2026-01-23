@@ -1,25 +1,21 @@
-// src/pages/Employees.jsx - Fixed Version
-import React, { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { 
   Table, Card, Button, Input, Select, DatePicker, 
-  Space, Tag, Switch, Drawer, Form, message, notification,
-  Row, Col, Tooltip, Popconfirm, Progress, 
-  Dropdown, Menu, Badge, Avatar, Empty, Spin, Alert,
-  Upload, Modal, Typography
+  Space, Tag, Switch, Drawer, Form, notification,
+  Row, Col, Tooltip, Popconfirm, Progress, Badge, Avatar, Empty, Spin,
+  Upload, Typography
 } from 'antd';
 import { 
   SearchOutlined, PlusOutlined, EditOutlined, 
-  DeleteOutlined, FilterOutlined, SortAscendingOutlined,
-  AppstoreOutlined, TableOutlined, EyeOutlined,
-  EyeInvisibleOutlined, MoreOutlined, UserOutlined,
-  CalendarOutlined, TeamOutlined, UploadOutlined,
+  FilterOutlined, AppstoreOutlined, TableOutlined, EyeOutlined,
+  EyeInvisibleOutlined,  UserOutlined,
+  CalendarOutlined, UploadOutlined,
   CloseOutlined, SaveOutlined
 } from '@ant-design/icons';
 import EmployeeStore from '../store/EmployeeStore';
 import dayjs from 'dayjs';
 
 const { Option } = Select;
-const { RangePicker } = DatePicker;
 const { Dragger } = Upload;
 const { Text } = Typography;
 
@@ -36,7 +32,6 @@ const Employees = () => {
     employees,
     totalEmployees,
     loading,
-    error,
     filters,
     currentPage,
     pageSize,
@@ -48,17 +43,11 @@ const Employees = () => {
     createEmployee,
     updateEmployee,
     archiveEmployee,
-    deleteEmployee
   } = EmployeeStore();
 
   useEffect(() => {
     fetchEmployees();
   }, [fetchEmployees]);
-
-  // Debug: Log current employees
-  useEffect(() => {
-    console.log('Current employees:', employees);
-  }, [employees]);
 
   const handleSearch = useCallback((value) => {
     setSearchText(value);
@@ -74,7 +63,6 @@ const Employees = () => {
   };
 
   const handleEdit = (employee) => {
-    console.log('Editing employee:', employee);
     setSelectedEmployee(employee);
     
     const formValues = {
@@ -84,11 +72,11 @@ const Employees = () => {
       role: employee.role,
       status: employee.status,
       joiningDate: employee.joiningDate ? dayjs(employee.joiningDate) : null,
-      performanceScore: Number(employee.performanceScore), // Ensure it's a number
+      performanceScore: Number(employee.performanceScore),
       image: employee.image
     };
     
-    console.log('Form values to set:', formValues);
+    // console.log('Form values to set:', formValues);
     form.setFieldsValue(formValues);
     
     // Set preview image if exists
@@ -98,7 +86,7 @@ const Employees = () => {
       setPreviewImage('');
     }
     
-    setFileList([]); // Reset file list for new upload
+    setFileList([]);
     setDrawerVisible(true);
   };
 
@@ -118,10 +106,10 @@ const Employees = () => {
       role: '',
       status: 'Active',
       joiningDate: dayjs(),
-      performanceScore: 70
+      performanceScore: 50
     };
     
-    console.log('Creating new employee with values:', initialValues);
+    // console.log('Creating new employee with values:', initialValues);
     form.setFieldsValue(initialValues);
     setDrawerVisible(true);
   };
@@ -147,37 +135,15 @@ const Employees = () => {
     }
   };
 
-  const handleDelete = async (employee) => {
-    console.log('Deleting employee:', employee);
-    try {
-      const success = await deleteEmployee(employee._id);
-      if (success) {
-        notification.success({
-          message: 'Employee Deleted',
-          description: `${employee.name} has been deleted successfully.`,
-          placement: 'topRight'
-        });
-      }
-    } catch (error) {
-      console.error('Delete error:', error);
-      notification.error({
-        message: 'Error',
-        description: 'Failed to delete employee.',
-        placement: 'topRight'
-      });
-    }
-  };
-
   const handleFileUpload = (info) => {
     let fileList = [...info.fileList];
-    fileList = fileList.slice(-1); // Limit to 1 file
+    fileList = fileList.slice(-1);
     setFileList(fileList);
     
     if (fileList.length > 0) {
       const file = fileList[0].originFileObj;
       console.log('File selected:', file);
       
-      // Create preview
       const reader = new FileReader();
       reader.onload = (e) => {
         setPreviewImage(e.target.result);
@@ -191,19 +157,17 @@ const Employees = () => {
   const handleRemoveFile = () => {
     setFileList([]);
     setPreviewImage('');
-    // If editing and removing preview, we'll send the update without image
     if (selectedEmployee) {
       form.setFieldsValue({ image: null });
     }
   };
 
   const handleSubmit = async (values) => {
-    console.log('Form submitted with values:', values);
-    console.log('Selected employee:', selectedEmployee);
-    console.log('File list:', fileList);
+    // console.log('form submitted with values:', values);
+    // console.log('selected employee:', selectedEmployee);
+    // console.log('file list:', fileList);
     
     try {
-      // Prepare form data
       const formData = {
         employeeID: values.employeeID,
         name: values.name,
@@ -211,41 +175,32 @@ const Employees = () => {
         role: values.role,
         status: values.status,
         joiningDate: values.joiningDate,
-        performanceScore: Number(values.performanceScore), // Ensure it's a number
+        performanceScore: Number(values.performanceScore),
         isArchived: selectedEmployee ? selectedEmployee.isArchived : false
       };
 
-      // Handle image upload
       if (fileList.length > 0 && fileList[0].originFileObj) {
-        // New file uploaded
         formData.image = fileList[0].originFileObj;
-        console.log('Adding new image file to formData');
       } else if (selectedEmployee?.image && previewImage && !fileList.length) {
-        // Editing and no new file - keep existing image URL
         formData.image = selectedEmployee.image;
-        console.log('Keeping existing image:', selectedEmployee.image);
       }
 
-      console.log('Final formData to send:', formData);
 
       let success;
       if (selectedEmployee) {
-        console.log('Calling updateEmployee with ID:', selectedEmployee._id);
         success = await updateEmployee(selectedEmployee._id, formData);
       } else {
-        console.log('Calling createEmployee');
         success = await createEmployee(formData);
       }
 
       if (success) {
-        console.log('Operation successful, closing drawer');
         setDrawerVisible(false);
         setSelectedEmployee(null);
         setFileList([]);
         setPreviewImage('');
         form.resetFields();
       } else {
-        console.log('Operation failed');
+        console.log('operation failed');
       }
     } catch (error) {
       console.error('Form submit error:', error);
@@ -268,7 +223,7 @@ const Employees = () => {
 
   const columns = [
     {
-      title: 'Employee ID',
+      title: 'EMP ID',
       dataIndex: 'employeeID',
       key: 'employeeID',
       sorter: true,
@@ -305,7 +260,11 @@ const Employees = () => {
             text === 'Engineering' ? 'blue' :
             text === 'Marketing' ? 'green' :
             text === 'Sales' ? 'red' :
-            text === 'HR' ? 'purple' : 'orange'
+            text === 'HR' ? 'purple' : 
+            text === 'Transport' ? 'red' : 
+            text === 'Business' ? 'yellow' : 
+            text === 'Account' ? 'pink' : 
+            text === 'IT' ? 'cyan' : 'orange'
           }
         >
           {text}
@@ -378,20 +337,6 @@ const Employees = () => {
               />
             </Popconfirm>
           </Tooltip>
-          
-          <Tooltip title="Delete">
-            <Popconfirm
-              title="Delete permanently?"
-              onConfirm={() => handleDelete(record)}
-              okType="danger"
-            >
-              <Button 
-                type="text" 
-                danger 
-                icon={<DeleteOutlined />} 
-              />
-            </Popconfirm>
-          </Tooltip>
         </Space>
       ),
     },
@@ -444,6 +389,32 @@ const Employees = () => {
                 <Option value="Sales">Sales</Option>
                 <Option value="HR">HR</Option>
                 <Option value="IT">IT</Option>
+                <Option value="Transport">Transport</Option>
+                <Option value="Business">Business</Option>
+                <Option value="Account">Accounts</Option>
+              </Select>
+
+              <Select
+                placeholder="Role"
+                style={{ width: 150 }}
+                value={filters.role}
+                onChange={(value) => handleFilterChange('role', value)}
+                allowClear
+              >
+                <Option value="Manager">Manager</Option>
+                <Option value="Designer">Designer</Option>
+                <Option value="Developer">Developer</Option>
+                <Option value="Driver">Driver</Option>
+                <Option value="Lavour">Lavour</Option>
+                <Option value="Accountants">Accountants</Option>
+                <Option value="AGM">AGM</Option>
+                <Option value="GM">GM</Option>
+                <Option value="Backend Developer">Backend Developer</Option>
+                <Option value="Frontend Developer">Frontend Developer</Option>
+                <Option value="Full Stack Developer">Full Stack Developer</Option>
+                <Option value="Assistant Manager">Assistant Manager</Option>
+                <Option value="Pion">Pion</Option>
+                <Option value="Office Staff">Office Staff</Option>
               </Select>
               
               <Select
@@ -457,12 +428,6 @@ const Employees = () => {
                 <Option value="On Leave">On Leave</Option>
               </Select>
               
-              <RangePicker
-                style={{ width: 250 }}
-                value={filters.dateRange}
-                onChange={(dates) => handleFilterChange('dateRange', dates)}
-              />
-              
               <Switch
                 checkedChildren="Archived"
                 unCheckedChildren="Active"
@@ -470,6 +435,8 @@ const Employees = () => {
                 onChange={(checked) => handleFilterChange('archived', checked)}
               />
               
+
+              {/* Table Option to grid or column */}
               <Button.Group>
                 <Button 
                   type={viewMode === 'table' ? 'primary' : 'default'}
@@ -483,7 +450,7 @@ const Employees = () => {
                 />
               </Button.Group>
               
-              <Button onClick={clearFilters}>
+              <Button onClick={clearFilters} icon={<FilterOutlined />}>
                 Clear Filters
               </Button>
             </Space>
@@ -512,7 +479,7 @@ const Employees = () => {
               emptyText: (
                 <Empty
                   description={
-                    searchText || filters.department || filters.status
+                    searchText || filters.department || filters.role || filters.status
                       ? "No employees match your search criteria"
                       : "No employees found"
                   }
@@ -582,12 +549,6 @@ const Employees = () => {
                               icon={employee.isArchived ? <EyeOutlined /> : <EyeInvisibleOutlined />}
                               onClick={() => handleArchiveToggle(employee)}
                             />
-                            <Button 
-                              type="text" 
-                              danger
-                              icon={<DeleteOutlined />}
-                              onClick={() => handleDelete(employee)}
-                            />
                           </div>
                         </div>
                       }
@@ -627,9 +588,7 @@ const Employees = () => {
           layout="vertical"
           onFinish={handleSubmit}
         >
-          <Form.Item
-            label="Employee Photo"
-          >
+          <Form.Item label="Employee Photo">
             <div className="mb-4">
               {previewImage && (
                 <div className="mb-4 relative">
@@ -659,7 +618,7 @@ const Employees = () => {
                     Click or drag image to upload
                   </p>
                   <p className="ant-upload-hint">
-                    Supports JPG, PNG, GIF up to 5MB
+                    Supports JPG, PNG up to 5MB
                   </p>
                 </Dragger>
               )}
@@ -695,6 +654,9 @@ const Employees = () => {
                   <Option value="Sales">Sales</Option>
                   <Option value="HR">HR</Option>
                   <Option value="IT">IT</Option>
+                  <Option value="Transport">Transport</Option>
+                  <Option value="Business">Business</Option>
+                  <Option value="Account">Accounts</Option>
                 </Select>
               </Form.Item>
             </Col>
@@ -704,7 +666,20 @@ const Employees = () => {
                 name="role"
                 rules={[{ required: true, message: 'Please enter role' }]}
               >
-                <Input />
+                  <Select>
+                  <Option value="GM">GM</Option>
+                  <Option value="AGM">AGM</Option>
+                  <Option value="Manager">Manager</Option>
+                  <Option value="Assistant Manager">Assistant Manager</Option>
+                  <Option value="Designer">Designer</Option>
+                  <Option value="Developer">Developer</Option>
+                  <Option value="Accountants">Accountants</Option>
+                  <Option value="Pion">Pion</Option>
+                  <Option value="Office Staff">Office Staff</Option>
+                  <Option value="Backend Developer">Backend Developer</Option>
+                  <Option value="Frontend Developer">Frontend Developer</Option>
+                  <Option value="Full Stack Developer">Full Stack Developer</Option>
+                </Select>
               </Form.Item>
             </Col>
           </Row>
@@ -740,7 +715,6 @@ const Employees = () => {
               { required: true, message: 'Please enter performance score' },
             ]}
             normalize={(value) => {
-              // Convert string to number and validate range
               const num = Number(value);
               if (isNaN(num)) return 70;
               if (num < 1) return 1;
